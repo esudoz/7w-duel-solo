@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.webmanifest">
-
 <title>7W Duel Solo</title>
 
 <style>
@@ -21,21 +20,13 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 body{padding:12px}
 
 header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:10px 12px;
-  margin-bottom:12px
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; padding:10px 12px; margin-bottom:12px
 }
 select,button{
-  background:#222;
-  border:1px solid var(--border);
-  color:var(--text);
-  border-radius:10px;
-  padding:8px 12px
+  background:#222; border:1px solid var(--border);
+  color:var(--text); border-radius:10px; padding:8px 12px
 }
 
 .app{
@@ -52,11 +43,11 @@ select,button{
   position:relative
 }
 
-/* ===== 왼쪽 오토마 ===== */
+/* ===== 왼쪽 오토마: 항상 가운데, 상하 기준 축소 ===== */
 .automaPanel{
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
 }
 .automaImg{
   height:100%;
@@ -80,10 +71,11 @@ select,button{
   width:min(90%,360px);
   aspect-ratio:16 / 9;
   border-radius:14px;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
   background-size:cover;
   background-position:center;
-  border:1px solid rgba(255,255,255,.18);
-  box-shadow:0 18px 40px rgba(0,0,0,.45)
+  background-repeat:no-repeat;
 }
 
 /* ===== 카드 더미 ===== */
@@ -96,41 +88,26 @@ select,button{
   touch-action:none
 }
 .stackHint{
-  position:absolute;
-  top:10px;
-  left:10px;
-  font-size:13px;
-  color:var(--muted)
+  position:absolute; top:10px; left:10px;
+  font-size:13px; color:var(--muted)
 }
 .stackCount{
-  position:absolute;
-  top:10px;
-  right:10px;
-  font-size:13px;
-  color:var(--muted)
+  position:absolute; top:10px; right:10px;
+  font-size:13px; color:var(--muted)
 }
 
 .cardBack{
-  position:absolute;
-  left:50%;
-  top:50%;
+  position:absolute; left:50%; top:50%;
   transform:translate(-50%,-50%);
   background-image:url("./assets/cards/back.png")
 }
-.cardBack:nth-child(3){
-  transform:translate(-50%,-50%) translate(6px,6px);
-  opacity:.6
-}
-.cardBack:nth-child(4){
-  transform:translate(-50%,-50%) translate(-4px,4px);
-  opacity:.8
-}
+.cardBack:nth-of-type(1){transform:translate(-50%,-50%) translate(6px,6px); opacity:.6}
+.cardBack:nth-of-type(2){transform:translate(-50%,-50%) translate(-4px,4px); opacity:.8}
+.cardBack:nth-of-type(3){transform:translate(-50%,-50%); opacity:1}
 
 /* 드래그 카드 (항상 뒷면) */
 .topCard{
-  position:absolute;
-  left:50%;
-  top:50%;
+  position:absolute; left:50%; top:50%;
   transform:translate(-50%,-50%);
   background-image:url("./assets/cards/back.png");
   cursor:grab;
@@ -144,23 +121,27 @@ select,button{
   height:100%;
   border:1px dashed rgba(255,255,255,.3);
   border-radius:14px;
-  display: grid !important;
-  place-items: center !important;
+  display:grid !important;
+  place-items:center !important;
   z-index:1;
 }
 .dropHint{
   color:var(--muted);
   font-size:13px;
-  text-align:center
+  text-align:center;
+  line-height:1.3;
+  padding:0 10px;
 }
+
+/* 앞면 공개 카드: 중앙/비율 유지 */
 .placedCard{
   position:absolute;
   inset:10px;
   display:none;
 
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;  /* 가로 카드면 전체 보이게 */
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:contain; /* 전체 보이게 */
 }
 </style>
 </head>
@@ -177,7 +158,7 @@ select,button{
 <main class="app">
   <!-- 왼쪽 오토마 -->
   <section class="panel automaPanel">
-    <img id="automaImg" class="automaImg">
+    <img id="automaImg" class="automaImg" alt="automa">
   </section>
 
   <!-- 오른쪽 -->
@@ -186,11 +167,13 @@ select,button{
       <div class="stackHint">아래로 끌기</div>
       <div class="stackCount" id="stackCount"></div>
 
+      <!-- 더미(뒤에서부터 3장) -->
       <div class="card cardBack"></div>
       <div class="card cardBack"></div>
       <div class="card cardBack"></div>
 
-      <div class="card topCard" id="topCard"></div>
+      <!-- 드래그 카드(항상 back) -->
+      <div class="card topCard" id="topCard" aria-label="top card"></div>
     </div>
 
     <div class="panel dropZone" id="dropZone">
@@ -208,76 +191,107 @@ const AUTOMAS=[
  {n:"ARISTOTLE",s:"./assets/automa/ARISTOTLE.png"},
  {n:"BILKIS",s:"./assets/automa/BILKIS.png"}
 ];
+
+// 카드 파일: 1.png ~ 12.png
 const CARDS=[...Array(12)].map((_,i)=>`./assets/cards/${i+1}.png`);
 
-let deck=[],idx=0,drag=false,sx=0,sy=0;
+let deck=[], idx=0;
+let drag=false, sx=0, sy=0;
 const $=id=>document.getElementById(id);
 
 function shuffle(a){
- for(let i=a.length-1;i>0;i--){
+ const b=a.slice();
+ for(let i=b.length-1;i>0;i--){
   const j=Math.floor(Math.random()*(i+1));
-  [a[i],a[j]]=[a[j],a[i]];
+  [b[i],b[j]]=[b[j],b[i]];
  }
- return a;
+ return b;
 }
 
 function reset(){
  deck=shuffle(CARDS);
  idx=0;
+
  $("placedCard").style.display="none";
  $("dropHint").style.display="block";
+
  $("topCard").style.display="block";
- $("stackCount").textContent=`${deck.length}장`;
  $("topCard").style.transform="translate(-50%,-50%)";
+
+ $("stackCount").textContent=`${deck.length}장`;
 }
 
-AUTOMAS.forEach(a=>{
- const o=document.createElement("option");
- o.value=a.s;
- o.textContent=a.n;
- $("automaSelect").appendChild(o);
-});
-$("automaImg").src=AUTOMAS[0].s;
-$("automaSelect").onchange=e=>$("automaImg").src=e.target.value;
-$("resetBtn").onclick=reset;
+function setAutomaOptions(){
+ AUTOMAS.forEach(a=>{
+  const o=document.createElement("option");
+  o.value=a.s;
+  o.textContent=a.n;
+  $("automaSelect").appendChild(o);
+ });
+ $("automaSelect").value=AUTOMAS[0].s;
+ $("automaImg").src=AUTOMAS[0].s;
 
-$("topCard").onpointerdown=e=>{
+ $("automaSelect").addEventListener("change",(e)=>{
+  $("automaImg").src=e.target.value;
+ });
+}
+
+$("resetBtn").addEventListener("click", reset);
+
+const topCard=$("topCard");
+
+topCard.addEventListener("pointerdown",(e)=>{
+ if(idx>=deck.length) return;
  drag=true;
- sx=e.clientX;
- sy=e.clientY;
- $("topCard").setPointerCapture(e.pointerId);
-};
+ sx=e.clientX; sy=e.clientY;
+ topCard.setPointerCapture(e.pointerId);
+ e.preventDefault();
+});
 
-window.onpointermove=e=>{
- if(!drag)return;
- $("topCard").style.transform=
+window.addEventListener("pointermove",(e)=>{
+ if(!drag) return;
+ e.preventDefault();
+ topCard.style.transform =
   `translate(calc(-50% + ${e.clientX-sx}px),
              calc(-50% + ${e.clientY-sy}px))`;
-};
+},{passive:false});
 
-window.onpointerup=()=>{
- if(!drag)return;
+window.addEventListener("pointerup",()=>{
+ if(!drag) return;
  drag=false;
 
- const c=$("topCard").getBoundingClientRect();
+ const c=topCard.getBoundingClientRect();
  const d=$("dropZone").getBoundingClientRect();
- const cx = c.left + c.width / 2;
- const cy = c.top  + c.height / 2;
-  
+
+ // ✅ 넓은 판정: 카드 '중심점'이 드롭존(+마진) 안이면 성공
+ const cx = c.left + c.width/2;
+ const cy = c.top  + c.height/2;
+ const margin = 60;
+
  const hit =
-   cx >= d.left && cx <= d.right &&
-   cy >= d.top  && cy <= d.bottom;
+   cx >= (d.left - margin) && cx <= (d.right + margin) &&
+   cy >= (d.top  - margin) && cy <= (d.bottom + margin);
 
  if(hit){
-   $("placedCard").style.backgroundImage=`url(${deck[idx++]})`;
-   $("placedCard").style.display="block";
-   $("dropHint").style.display="none";
-   $("stackCount").textContent=`${deck.length-idx}장`;
-   if(idx>=deck.length) $("topCard").style.display="none";
- }
- $("topCard").style.transform="translate(-50%,-50%)";
-};
+   $("placedCard").style.backgroundImage = `url(${deck[idx++]})`;
+   $("placedCard").style.display = "block";
+   $("dropHint").style.display = "none";
 
+   $("stackCount").textContent = `${deck.length - idx}장`;
+   if(idx>=deck.length) topCard.style.display="none";
+ }
+
+ // 원위치
+ topCard.style.transform="translate(-50%,-50%)";
+});
+
+window.addEventListener("pointercancel",()=>{
+ if(!drag) return;
+ drag=false;
+ topCard.style.transform="translate(-50%,-50%)";
+});
+
+setAutomaOptions();
 reset();
 </script>
 </body>
