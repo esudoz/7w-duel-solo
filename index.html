@@ -257,8 +257,12 @@ window.onpointerup=()=>{
 
  const c=$("topCard").getBoundingClientRect();
  const d=$("dropZone").getBoundingClientRect();
- const hit=c.left>d.left && c.right<d.right &&
-           c.top>d.top && c.bottom<d.bottom;
+ const cx = c.left + c.width / 2;
+ const cy = c.top  + c.height / 2;
+  
+ const hit =
+   cx >= d.left && cx <= d.right &&
+   cy >= d.top  && cy <= d.bottom;
 
  if(hit){
    $("placedCard").style.backgroundImage=`url(${deck[idx++]})`;
