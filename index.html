@@ -1,435 +1,200 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="theme-color" content="#111111">
-  <link rel="manifest" href="./manifest.webmanifest">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.webmanifest">
 
-  <title>7W Duel Solo</title>
-  <style>
-    :root {
-      --bg: #0f1115;
-      --panel: #161a22;
-      --border: rgba(255,255,255,0.12);
-      --text: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.7);
-      --accent: rgba(120,180,255,0.9);
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; }
-    body { padding: 12px; }
+<title>7W Duel Solo</title>
 
-    header {
-      display: flex; gap: 10px; align-items: center; justify-content: space-between;
-      padding: 10px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
-      margin-bottom: 12px;
-    }
-    .title { font-weight: 700; letter-spacing: 0.2px; }
-    .controls { display: flex; gap: 8px; align-items: center; }
-    select, button {
-      background: rgba(255,255,255,0.06);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 14px;
-    }
-    button { cursor: pointer; }
-    button:active { transform: translateY(1px); }
+<style>
+:root{
+  --bg:#0f1115; --panel:#161a22; --border:rgba(255,255,255,.15);
+  --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.65);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,system-ui}
+body{padding:12px}
 
-    .app {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 12px;
-      height: calc(100% - 72px);
-      min-height: 520px;
-    }
+header{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:10px 12px;margin-bottom:12px
+}
+select,button{
+  background:#222;border:1px solid var(--border);
+  color:var(--text);border-radius:10px;padding:8px 12px
+}
 
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 12px;
-      overflow: hidden;
-      position: relative;
-    }
+.app{
+  display:grid;grid-template-columns:1.1fr 1fr;gap:12px;
+  height:calc(100% - 72px)
+}
+.panel{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:16px;padding:12px;position:relative
+}
 
-    /* Left: automa */
-    .automaWrap {
-      height: 100%;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 10px;
-    }
-    .automaLabel { color: var(--muted); font-size: 13px; }
-    .automaImg {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.18);
-    }
+/* automa */
+.automaImg{
+  width:100%;height:100%;object-fit:contain;border-radius:12px
+}
 
-    /* Right: stack + dropzone */
-    .rightWrap {
-      height: 100%;
-      display: grid;
-      grid-template-rows: 1fr 1fr;
-      gap: 12px;
-    }
+/* right */
+.rightWrap{display:grid;grid-template-rows:1fr 1fr;gap:12px;height:100%}
 
-    .stackArea {
-      position: relative;
-      height: 100%;
-      border-radius: 14px;
-      background: rgba(0,0,0,0.18);
-      border: 1px dashed rgba(255,255,255,0.18);
-      overflow: hidden;
-      touch-action: none; /* iPad drag 안정화 */
-    }
-    .stackHint {
-      position: absolute;
-      top: 10px; left: 10px;
-      font-size: 13px; color: var(--muted);
-      z-index: 1;
-    }
-    .stackCount {
-      position: absolute;
-      top: 10px; right: 10px;
-      font-size: 13px; color: var(--muted);
-      z-index: 1;
-    }
+/* 카드 공통 (가로 비율) */
+.card{
+  width:min(90%,360px);
+  aspect-ratio: 16 / 9;
+  border-radius:14px;
+  background-size:cover;
+  background-position:center;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 18px 40px rgba(0,0,0,.45)
+}
 
-    /* “더미” 표현: 뒷면 이미지 */
-    .cardBack {
-      position: absolute;
-      width: min(78%, 320px);
-      aspect-ratio: 2.5 / 3.5;
-      left: 50%;
-      top: 52%;
-      transform: translate(-50%, -50%);
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background-image: url("./assets/cards/back.png");
-      background-size: cover;
-      background-position: center;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-    }
+/* 더미 영역 */
+.stackArea{
+  position:relative;height:100%;
+  border:1px dashed rgba(255,255,255,.25);
+  border-radius:14px;overflow:hidden;touch-action:none
+}
+.stackHint{position:absolute;top:10px;left:10px;font-size:13px;color:var(--muted)}
+.stackCount{position:absolute;top:10px;right:10px;font-size:13px;color:var(--muted)}
 
-    /* 실제 드래그 되는 “맨 위 카드”(앞면 이미지) */
-    .topCard {
-      position: absolute;
-      width: min(78%, 320px);
-      aspect-ratio: 2.5 / 3.5;
-      left: 50%;
-      top: 52%;
-      transform: translate(-50%, -50%);
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.22);
-      background: rgba(0,0,0,0.20);
-      box-shadow: 0 18px 50px rgba(0,0,0,0.45);
-      overflow: hidden;
-      cursor: grab;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: none;
-    }
-    .topCard:active { cursor: grabbing; }
-    .topCard img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: rgba(0,0,0,0.18);
-    }
+.cardBack{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  background-image:url("./assets/cards/back.png")
+}
+.cardBack:nth-child(3){transform:translate(-50%,-50%) translate(6px,6px);opacity:.6}
+.cardBack:nth-child(4){transform:translate(-50%,-50%) translate(-4px,4px);opacity:.8}
 
-    .dropZone {
-      position: relative;
-      height: 100%;
-      border-radius: 14px;
-      background: rgba(0,0,0,0.18);
-      border: 1px dashed rgba(255,255,255,0.22);
-      overflow: hidden;
-      display: grid;
-      place-items: center;
-      touch-action: none;
-    }
-    .dropHint {
-      color: var(--muted);
-      font-size: 13px;
-      text-align: center;
-      padding: 0 14px;
-      line-height: 1.3;
-    }
-    .placedCard {
-      position: absolute;
-      inset: 10px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(0,0,0,0.18);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-      display: none;
-    }
-    .placedCard img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background: rgba(0,0,0,0.18);
-    }
+/* 드래그 카드 (항상 뒷면) */
+.topCard{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  cursor:grab;touch-action:none
+}
 
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.7);
-      border: 1px solid rgba(255,255,255,0.18);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-size: 13px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 180ms ease;
-    }
-    .toast.show { opacity: 1; }
-  </style>
+/* 드롭존 */
+.dropZone{
+  position:relative;height:100%;
+  border:1px dashed rgba(255,255,255,.3);
+  border-radius:14px;
+  display:grid;place-items:center
+}
+.dropHint{color:var(--muted);font-size:13px;text-align:center}
+.placedCard{position:absolute;inset:10px;display:none}
+</style>
 </head>
 
 <body>
-  <header>
-    <div class="title">7원더스 대결 · 솔로 오토마</div>
-    <div class="controls">
-      <label style="display:flex; gap:8px; align-items:center; color:var(--muted); font-size:13px;">
-        오토마
-        <select id="automaSelect"></select>
-      </label>
-      <button id="resetBtn" type="button">리셋/셔플</button>
+<header>
+  <div>7원더스 대결 · 솔로</div>
+  <div>
+    <select id="automaSelect"></select>
+    <button id="resetBtn">셔플</button>
+  </div>
+</header>
+
+<main class="app">
+  <section class="panel">
+    <img id="automaImg" class="automaImg">
+  </section>
+
+  <section class="rightWrap">
+    <div class="panel stackArea" id="stackArea">
+      <div class="stackHint">아래로 끌기</div>
+      <div class="stackCount" id="stackCount"></div>
+
+      <div class="card cardBack"></div>
+      <div class="card cardBack"></div>
+      <div class="card cardBack"></div>
+
+      <div class="card topCard" id="topCard"
+           style="background-image:url('./assets/cards/back.png')"></div>
     </div>
-  </header>
 
-  <main class="app">
-    <!-- Left -->
-    <section class="panel automaWrap">
-      <div class="automaLabel">선택된 오토마</div>
-      <img id="automaImg" class="automaImg" alt="automa" />
-    </section>
-
-    <!-- Right -->
-    <section class="rightWrap">
-      <div class="panel stackArea" id="stackArea">
-        <div class="stackHint">위 카드를 아래로 끌어내리세요</div>
-        <div class="stackCount" id="stackCount">12장</div>
-
-        <!-- 더미 배경(겹쳐 보이게 3장) -->
-        <div class="cardBack" style="transform: translate(-50%, -50%) rotate(-2deg) translate(6px, 6px); opacity:0.65;"></div>
-        <div class="cardBack" style="transform: translate(-50%, -50%) rotate(1.5deg) translate(-4px, 3px); opacity:0.8;"></div>
-        <div class="cardBack"></div>
-
-        <!-- 드래그되는 상단 카드 -->
-        <div class="topCard" id="topCard" aria-label="top card">
-          <img id="topCardImg" alt="card" />
-        </div>
-      </div>
-
-      <div class="panel dropZone" id="dropZone">
-        <div class="dropHint" id="dropHint">
-          여기로 내려놓으면<br/>오토마 행동 카드가 앞면으로 놓입니다
-        </div>
-        <div class="placedCard" id="placedCard">
-          <img id="placedCardImg" alt="placed card" />
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <div class="toast" id="toast"></div>
+    <div class="panel dropZone" id="dropZone">
+      <div class="dropHint" id="dropHint">여기에 놓으면<br>앞면 공개</div>
+      <div class="card placedCard" id="placedCard"></div>
+    </div>
+  </section>
+</main>
 
 <script>
-  // ====== 설정 ======
-  const AUTOMAS = [
-    { name: "HAMMURABI", src: "./assets/automa/HAMMURABI.png" },
-    { name: "CLEOPATRA", src: "./assets/automa/CLEOPATRA.png" },
-    { name: "CAESAR",    src: "./assets/automa/CAESAR.png" },
-    { name: "ARISTOTLE", src: "./assets/automa/ARISTOTLE.png" },
-    { name: "BILKIS",    src: "./assets/automa/BILKIS.png" }
-  ];
+const AUTOMAS=[
+ {n:"HAMMURABI",s:"./assets/automa/HAMMURABI.png"},
+ {n:"CLEOPATRA",s:"./assets/automa/CLEOPATRA.png"},
+ {n:"CAESAR",s:"./assets/automa/CAESAR.png"},
+ {n:"ARISTOTLE",s:"./assets/automa/ARISTOTLE.png"},
+ {n:"BILKIS",s:"./assets/automa/BILKIS.png"}
+];
 
-  const CARDS = Array.from({ length: 12 }, (_, i) => `./assets/cards/${i + 1}.png`);
-  const CARD_BACK = "./assets/cards/back.png";
+const CARDS=[...Array(12)].map((_,i)=>`./assets/cards/${i+1}.png`);
 
-  // ====== 상태 ======
-  let deck = [];      // 셔플된 카드 배열
-  let topIndex = 0;   // 다음으로 뽑을 인덱스
+let deck=[],idx=0,drag=false,sx=0,sy=0;
+const $=id=>document.getElementById(id);
 
-  // 드래그 상태
-  let dragging = false;
-  let startX = 0, startY = 0;
-  let curX = 0, curY = 0;
+function shuffle(a){
+ for(let i=a.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [a[i],a[j]]=[a[j],a[i]];
+ } return a;
+}
 
-  const els = {
-    automaSelect: document.getElementById('automaSelect'),
-    automaImg: document.getElementById('automaImg'),
-    resetBtn: document.getElementById('resetBtn'),
-    stackArea: document.getElementById('stackArea'),
-    stackCount: document.getElementById('stackCount'),
-    topCard: document.getElementById('topCard'),
-    topCardImg: document.getElementById('topCardImg'),
-    dropZone: document.getElementById('dropZone'),
-    dropHint: document.getElementById('dropHint'),
-    placedCard: document.getElementById('placedCard'),
-    placedCardImg: document.getElementById('placedCardImg'),
-    toast: document.getElementById('toast'),
-  };
+function reset(){
+ deck=shuffle(CARDS);idx=0;
+ $("placedCard").style.display="none";
+ $("dropHint").style.display="block";
+ $("topCard").style.display="block";
+ $("stackCount").textContent=`${deck.length}장`;
+ $("topCard").style.transform="translate(-50%,-50%)";
+}
 
-  // ====== 유틸 ======
-  function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
+AUTOMAS.forEach(a=>{
+ const o=document.createElement("option");
+ o.value=a.s;o.textContent=a.n;
+ $("automaSelect").appendChild(o);
+});
+$("automaImg").src=AUTOMAS[0].s;
+$("automaSelect").onchange=e=>$("automaImg").src=e.target.value;
+$("resetBtn").onclick=reset;
 
-  function showToast(msg) {
-    els.toast.textContent = msg;
-    els.toast.classList.add('show');
-    setTimeout(() => els.toast.classList.remove('show'), 900);
-  }
+$("topCard").onpointerdown=e=>{
+ drag=true; sx=e.clientX; sy=e.clientY;
+ $("topCard").setPointerCapture(e.pointerId);
+};
 
-  function setTopCardImage() {
-    if (topIndex >= deck.length) {
-      els.topCard.style.display = 'none';
-      els.stackCount.textContent = '0장';
-      showToast('카드 더미가 비었습니다');
-      return;
-    }
-    els.topCard.style.display = 'block';
-    els.topCardImg.src = deck[topIndex];
-    els.stackCount.textContent = `${deck.length - topIndex}장`;
-  }
+window.onpointermove=e=>{
+ if(!drag)return;
+ $("topCard").style.transform=
+ `translate(calc(-50% + ${e.clientX-sx}px),
+            calc(-50% + ${e.clientY-sy}px))`;
+};
 
-  function resetAll() {
-    deck = shuffle(CARDS);
-    topIndex = 0;
-    // drop zone 초기화
-    els.placedCard.style.display = 'none';
-    els.dropHint.style.display = 'block';
-    // top card 원위치
-    resetTopCardTransform();
-    setTopCardImage();
-    showToast('셔플 완료');
-  }
+window.onpointerup=()=>{
+ if(!drag)return; drag=false;
 
-  function setAutoma(src) {
-    els.automaImg.src = src;
-  }
+ const c=$("topCard").getBoundingClientRect();
+ const d=$("dropZone").getBoundingClientRect();
+ const hit=c.left> d.left && c.right<d.right &&
+           c.top> d.top && c.bottom<d.bottom;
 
-  function resetTopCardTransform() {
-    els.topCard.style.transition = 'transform 160ms ease';
-    els.topCard.style.transform = 'translate(-50%, -50%)';
-    setTimeout(() => { els.topCard.style.transition = 'none'; }, 170);
-  }
+ if(hit){
+   $("placedCard").style.backgroundImage=`url(${deck[idx++]})`;
+   $("placedCard").style.display="block";
+   $("dropHint").style.display="none";
+   $("stackCount").textContent=`${deck.length-idx}장`;
+   if(idx>=deck.length) $("topCard").style.display="none";
+ }
+ $("topCard").style.transform="translate(-50%,-50%)";
+};
 
-  function placeCard(cardSrc) {
-    els.placedCardImg.src = cardSrc;
-    els.placedCard.style.display = 'block';
-    els.dropHint.style.display = 'none';
-  }
-
-  function pointFromEvent(ev) {
-    return { x: ev.clientX, y: ev.clientY };
-  }
-
-  // ====== 초기 UI ======
-  function init() {
-    // automa select
-    AUTOMAS.forEach((a) => {
-      const opt = document.createElement('option');
-      opt.value = a.src;
-      opt.textContent = a.name;
-      els.automaSelect.appendChild(opt);
-    });
-    els.automaSelect.value = AUTOMAS[0].src;
-    setAutoma(AUTOMAS[0].src);
-
-    els.automaSelect.addEventListener('change', (e) => {
-      setAutoma(e.target.value);
-    });
-
-    els.resetBtn.addEventListener('click', resetAll);
-
-    // drag handlers
-    els.topCard.addEventListener('pointerdown', onPointerDown);
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
-    window.addEventListener('pointercancel', onPointerUp);
-
-    resetAll();
-
-    // service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
-    }
-  }
-
-  function onPointerDown(ev) {
-    ev.preventDefault();
-    if (topIndex >= deck.length) return;
-
-    dragging = true;
-    els.topCard.setPointerCapture(ev.pointerId);
-
-    const p = pointFromEvent(ev);
-    startX = p.x;
-    startY = p.y;
-    curX = 0;
-    curY = 0;
-    els.topCard.style.transition = 'none';
-  }
-
-  function onPointerMove(ev) {
-    if (!dragging) return;
-    ev.preventDefault();
-
-    const p = pointFromEvent(ev);
-    curX = p.x - startX;
-    curY = p.y - startY;
-
-    els.topCard.style.transform = `translate(calc(-50% + ${curX}px), calc(-50% + ${curY}px))`;
-  }
-
-  function onPointerUp(ev) {
-    if (!dragging) return;
-    dragging = false;
-
-    const cardRect = els.topCard.getBoundingClientRect();
-    const dropRect = els.dropZone.getBoundingClientRect();
-
-    const centerX = cardRect.left + cardRect.width / 2;
-    const centerY = cardRect.top + cardRect.height / 2;
-
-    const inDrop =
-      centerX >= dropRect.left && centerX <= dropRect.right &&
-      centerY >= dropRect.top  && centerY <= dropRect.bottom;
-
-    if (inDrop) {
-      const cardSrc = deck[topIndex];
-      placeCard(cardSrc);
-      topIndex += 1;
-      setTopCardImage();
-      resetTopCardTransform();
-    } else {
-      resetTopCardTransform();
-    }
-  }
-
-  init();
+reset();
 </script>
 </body>
 </html>
