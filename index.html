@@ -80,6 +80,7 @@ select,button{
 
 /* 드래그 카드 (항상 뒷면) */
 .topCard{
+  z-index: 50;
   position:absolute;left:50%;top:50%;
   transform:translate(-50%,-50%);
   cursor:grab;touch-action:none
@@ -87,6 +88,7 @@ select,button{
 
 /* 드롭존 */
 .dropZone{
+  z-index: 1;
   position:relative;height:100%;
   border:1px dashed rgba(255,255,255,.3);
   border-radius:14px;
