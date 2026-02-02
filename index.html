@@ -106,16 +106,9 @@
 
     /* “더미” 표현: 뒷면 느낌의 카드 */
     .cardBack {
-      position: absolute;
-      width: min(78%, 320px);
-      aspect-ratio: 2.5 / 3.5;
-      left: 50%;
-      top: 52%;
-      transform: translate(-50%, -50%);
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: linear-gradient(135deg, rgba(120,180,255,0.24), rgba(255,255,255,0.06));
-      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+      background-image: url("./assets/cards/back.png");
+      background-size: cover;
+      background-position: center;
     }
     .cardBack::after {
       content: "";
@@ -257,8 +250,15 @@
 
 <script>
   // ====== 설정 ======
-  const AUTOMAS = [1,2,3,4,5].map(n => `./assets/automa/${n}.png`);
+  const AUTOMAS = [
+    { name: "HAMMURABI",  src: "./assets/automa/HAMMURABI.png" },
+    { name: "CLEOPATRA",  src: "./assets/automa/CLEOPATRA.png" },
+    { name: "CAESAR",     src: "./assets/automa/CAESAR.png" },
+    { name: "ARISTOTLE",  src: "./assets/automa/ARISTOTLE.png" },
+    { name: "BILKIS",     src: "./assets/automa/BILKIS.png" }
+  ];
   const CARDS   = Array.from({length: 12}, (_, i) => `./assets/cards/a${i+1}.png`);
+  const CARD_BACK = "./assets/cards/back.png";
 
   // ====== 상태 ======
   let deck = [];      // 셔플된 카드 배열
@@ -353,7 +353,7 @@
     AUTOMAS.forEach((src, idx) => {
       const opt = document.createElement('option');
       opt.value = src;
-      opt.textContent = String(idx + 1);
+      opt.textContent = a.name;
       els.automaSelect.appendChild(opt);
     });
     els.automaSelect.value = AUTOMAS[0];
